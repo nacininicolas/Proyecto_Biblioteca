@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS | Biblioteca escolar</title>
+  <link rel="stylesheet" href="Diseño_Biblioteca.css">
+</head>
+<body>
+  <header class="header">
+    <p class="header__tag">Proyecto escolar</p>
+    <h1>NEXUS</h1>
+    <p class="header__subtitle">Sistema basico para la administracion de la biblioteca</p>
+  </header>
+
+  <main class="container">
+    <section class="dashboard">
+      <div class="section-heading">
+        <div>
+          <h2>Panel principal</h2>
+          <p>Una vista simple para que la bibliotecaria pueda trabajar con las funciones basicas del sistema.</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <a class="action-card" href="#buscar">
+          <h3>Buscar libros</h3>
+          <p>Consultar el catalogo por titulo, autor o codigo.</p>
+        </a>
+
+        <a class="action-card" href="#agregar">
+          <h3>Agregar libro</h3>
+          <p>Cargar un nuevo libro al sistema.</p>
+        </a>
+
+        <a class="action-card" href="#stock">
+          <h3>Stock</h3>
+          <p>Ver disponibilidad actual de los ejemplares.</p>
+        </a>
+
+        <a class="action-card" href="#prestamos">
+          <h3>Prestamos</h3>
+          <p>Registrar prestamos y devoluciones.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="summary-grid" id="stock">
+      <article class="summary-card">
+        <span class="summary-card__label">Titulos cargados</span>
+        <strong class="summary-card__value" id="totalTitulos">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Ejemplares totales</span>
+        <strong class="summary-card__value" id="totalEjemplares">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Disponibles</span>
+        <strong class="summary-card__value" id="totalDisponibles">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Prestados</span>
+        <strong class="summary-card__value" id="totalPrestados">0</strong>
+      </article>
+    </section>
+
+    <section class="layout-grid">
+      <section class="panel" id="buscar">
+        <div class="section-heading">
+          <div>
+            <h2>Buscar libros</h2>
+            <p>Filtra el catalogo por titulo, autor, genero o codigo.</p>
+          </div>
+        </div>
+
+        <input
+          class="text-input"
+          id="searchInput"
+          type="text"
+          placeholder="Escribe para buscar en el catalogo"
+        >
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Codigo</th>
+                <th>Titulo</th>
+                <th>Autor</th>
+                <th>Genero</th>
+                <th>Stock</th>
+                <th>Disponibles</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+          </table>
+        </div>
+
+        <p class="message" id="catalogMessage"></p>
+      </section>
+
+      <section class="panel" id="agregar">
+        <div class="section-heading">
+          <div>
+            <h2>Agregar libro</h2>
+            <p>Formulario simple para cargar nuevos ejemplares al catalogo.</p>
+          </div>
+        </div>
+
+        <form id="addBookForm" class="form-grid">
+          <label>
+            Codigo
+            <input class="text-input" type="text" id="bookCode" placeholder="Ej: NEX-010" required>
+          </label>
+
+          <label>
+            Titulo
+            <input class="text-input" type="text" id="bookTitle" placeholder="Nombre del libro" required>
+          </label>
+
+          <label>
+            Autor
+            <input class="text-input" type="text" id="bookAuthor" placeholder="Autor o autora" required>
+          </label>
+
+          <label>
+            Genero
+            <input class="text-input" type="text" id="bookGenre" placeholder="Ej: Programacion" required>
+          </label>
+
+          <label>
+            Cantidad
+            <input class="text-input" type="number" id="bookStock" min="1" value="1" required>
+          </label>
+
+          <button class="button" type="submit">Guardar libro</button>
+        </form>
+
+        <p class="message" id="bookMessage"></p>
+      </section>
+    </section>
+
+    <section class="panel" id="prestamos">
+      <div class="section-heading">
+        <div>
+          <h2>Prestamos y devoluciones</h2>
+          <p>Registro basico de movimientos para una primera version funcional.</p>
+        </div>
+      </div>
+
+      <form id="loanForm" class="loan-form">
+        <label>
+          Libro
+          <select class="text-input" id="loanBook" required></select>
+        </label>
+
+        <label>
+          Persona
+          <input class="text-input" type="text" id="loanPerson" placeholder="Nombre del alumno o docente" required>
+        </label>
+
+        <label>
+          Accion
+          <select class="text-input" id="loanAction" required>
+            <option value="prestamo">Prestamo</option>
+            <option value="devolucion">Devolucion</option>
+          </select>
+        </label>
+
+        <button class="button" type="submit">Registrar movimiento</button>
+      </form>
+
+      <p class="message" id="loanMessage"></p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Libro</th>
+              <th>Persona</th>
+              <th>Movimiento</th>
+            </tr>
+          </thead>
+          <tbody id="movementsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="intro">
+      <h2>Nuestra idea</h2>
+      <p>
+        NEXUS es una propuesta simple para ayudar a la bibliotecaria a organizar
+        los libros de la escuela, controlar el stock y registrar prestamos y devoluciones.
+      </p>
+      <p>
+        En esta primera etapa nos enfocamos solo en la parte interna de la biblioteca.
+        Mas adelante se podran agregar usuarios, reservas y otras funciones.
+      </p>
+    </section>
+
+    <section class="next-step">
+      <h2>Proxima etapa</h2>
+      <p>
+        En el futuro el sistema podra incluir cuentas para alumnos y profesores,
+        reservas de libros, lista de deseos y avisos de disponibilidad.
+      </p>
+    </section>
+  </main>
+
+  <script src="Biblioteca.js"></script>
+</body>
+</html>
