@@ -156,7 +156,7 @@ label {
   background-color: var(--blanco);
   box-shadow: var(--sombra);
   text-align: center;
-  border: 2px solid #000000;
+  border: 1px solid #000000;
 }
 
 .login-tarjeta {
