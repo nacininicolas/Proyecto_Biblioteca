@@ -1,108 +1,282 @@
-const books = [
+const cursosValidos = ["INFO-7MO", "INFO-6TO", "ELEC-7MO"];
+
+const usuarios = [
+  { email: "admin@nexus.com", password: "admin123", rol: "bibliotecaria", nombre: "Admin", apellido: "NEXUS", curso: "INFO-7MO" },
+  { email: "gomez@escuela.edu.ar", password: "profe123", rol: "profesor", nombre: "Profesor", apellido: "Gomez", curso: "INFO-6TO" }
+];
+
+let usuarioLogueado = null;
+
+const libros = [
   {
-    code: "NEX-001",
-    title: "Programacion I",
-    author: "Pablo Gomez",
-    genre: "Programacion",
+    codigo: "NEX-001",
+    titulo: "Programacion I",
+    autor: "Pablo Gomez",
+    editorial: "Aula Tecnica",
+    anio: 2022,
+    genero: "Programacion",
     stock: 5,
-    available: 4
+    disponibles: 4
   },
   {
-    code: "NEX-002",
-    title: "Base de Datos",
-    author: "Laura Perez",
-    genre: "Base de datos",
+    codigo: "NEX-002",
+    titulo: "Base de Datos",
+    autor: "Laura Perez",
+    editorial: "Conocimiento Sur",
+    anio: 2021,
+    genero: "Base de datos",
     stock: 4,
-    available: 4
+    disponibles: 4
   },
   {
-    code: "NEX-003",
-    title: "Redes Informaticas",
-    author: "Martin Lopez",
-    genre: "Redes",
+    codigo: "NEX-003",
+    titulo: "Redes Informaticas",
+    autor: "Martin Lopez",
+    editorial: "TecnoEscuela",
+    anio: 2023,
+    genero: "Redes",
     stock: 6,
-    available: 6
+    disponibles: 6
   },
   {
-    code: "NEX-004",
-    title: "Hardware Basico",
-    author: "Carla Diaz",
-    genre: "Hardware",
+    codigo: "NEX-004",
+    titulo: "Hardware Basico",
+    autor: "Carla Diaz",
+    editorial: "Manual Escolar",
+    anio: 2020,
+    genero: "Hardware",
     stock: 3,
-    available: 2
+    disponibles: 2
   }
 ];
 
-const movements = [
+const movimientos = [
   {
-    date: "19/04/2026",
-    book: "Programacion I",
-    person: "4to 2da",
-    action: "Prestamo"
+    fecha: "19/04/2026",
+    libro: "Programacion I",
+    persona: "4to 2da",
+    accion: "Prestamo"
   },
   {
-    date: "19/04/2026",
-    book: "Hardware Basico",
-    person: "Profesor Gomez",
-    action: "Prestamo"
+    fecha: "19/04/2026",
+    libro: "Hardware Basico",
+    persona: "Profesor Gomez",
+    accion: "Prestamo"
   }
 ];
 
-const booksTableBody = document.getElementById("booksTableBody");
-const movementsTableBody = document.getElementById("movementsTableBody");
-const searchInput = document.getElementById("searchInput");
-const addBookForm = document.getElementById("addBookForm");
-const bookMessage = document.getElementById("bookMessage");
-const catalogMessage = document.getElementById("catalogMessage");
-const loanForm = document.getElementById("loanForm");
-const loanMessage = document.getElementById("loanMessage");
-const loanBook = document.getElementById("loanBook");
+const cuerpoTablaLibros = document.getElementById("cuerpoTablaLibros");
+const cuerpoTablaConsulta = document.getElementById("cuerpoTablaConsulta");
+const cuerpoTablaMovimientos = document.getElementById("cuerpoTablaMovimientos");
+const inputBuscador = document.getElementById("inputBuscador");
+const inputBuscadorUsuarios = document.getElementById("inputBuscadorUsuarios");
+const formularioAgregarLibro = document.getElementById("formularioAgregarLibro");
+const mensajeLibro = document.getElementById("mensajeLibro");
+const mensajeCatalogo = document.getElementById("mensajeCatalogo");
+const mensajeConsulta = document.getElementById("mensajeConsulta");
+const formularioPrestamos = document.getElementById("formularioPrestamos");
+const mensajePrestamo = document.getElementById("mensajePrestamo");
+const selectLibroPrestamo = document.getElementById("selectLibroPrestamo");
+const resumenStock = document.getElementById("resumen-stock");
+const barraNavegacion = document.getElementById("barraNavegacion");
+const seccionLogin = document.getElementById("seccion-login");
+const formularioLogin = document.getElementById("formularioLogin");
+const mensajeLogin = document.getElementById("mensajeLogin");
+const formularioRegistro = document.getElementById("formularioRegistro");
+const mensajeRegistro = document.getElementById("mensajeRegistro");
+const botonesSeccion = document.querySelectorAll("[data-seccion]");
+const botonesBarraNavegacion = document.querySelectorAll("#barraNavegacion [data-seccion]");
+const seccionesPrincipales = document.querySelectorAll(
+  "#seccion-inicio, #seccion-buscar, #seccion-consulta, #seccion-agregar, #seccion-prestamos"
+);
+const seccionesBibliotecaria = ["seccion-inicio", "seccion-buscar", "seccion-agregar", "seccion-prestamos"];
+const seccionesUsuarios = ["seccion-consulta"];
 
-function renderBooks(filter = "") {
-  const term = filter.trim().toLowerCase();
+function mostrarMensaje(elemento, texto) {
+  elemento.textContent = texto;
+}
 
-  const filteredBooks = books.filter((book) => {
-    const fullText = `${book.code} ${book.title} ${book.author} ${book.genre}`.toLowerCase();
-    return fullText.includes(term);
+function normalizarTexto(texto) {
+  return texto.trim().replace(/\s+/g, " ");
+}
+
+function codigoCursoValido(codigoCurso) {
+  return cursosValidos.includes(codigoCurso);
+}
+
+function cambiarSeccion(idSeccion) {
+  if (usuarioLogueado && usuarioLogueado.rol === "bibliotecaria" && !seccionesBibliotecaria.includes(idSeccion)) {
+    idSeccion = "seccion-inicio";
+  }
+
+  if (usuarioLogueado && usuarioLogueado.rol !== "bibliotecaria" && !seccionesUsuarios.includes(idSeccion)) {
+    idSeccion = "seccion-consulta";
+  }
+
+  if (seccionLogin) {
+    seccionLogin.classList.add("oculto");
+  }
+
+  seccionesPrincipales.forEach((seccion) => {
+    seccion.classList.add("oculto");
   });
 
-  booksTableBody.innerHTML = "";
+  const seccionSeleccionada = document.getElementById(idSeccion);
 
-  if (filteredBooks.length === 0) {
-    booksTableBody.innerHTML = `
+  if (seccionSeleccionada) {
+    seccionSeleccionada.classList.remove("oculto");
+  }
+
+  if (resumenStock) {
+    resumenStock.classList.toggle("oculto", idSeccion !== "seccion-inicio");
+  }
+}
+
+function iniciarApp() {
+  seccionesPrincipales.forEach((seccion) => {
+    seccion.classList.add("oculto");
+  });
+
+  if (resumenStock) {
+    resumenStock.classList.add("oculto");
+  }
+
+  if (barraNavegacion) {
+    barraNavegacion.classList.add("oculto");
+  }
+
+  if (seccionLogin) {
+    seccionLogin.classList.remove("oculto");
+  }
+}
+
+function aplicarPermisosPorRol() {
+  botonesSeccion.forEach((boton) => {
+    boton.classList.remove("oculto");
+  });
+
+  if (usuarioLogueado.rol === "bibliotecaria") {
+    if (barraNavegacion) {
+      barraNavegacion.classList.remove("oculto");
+    }
+
+    botonesBarraNavegacion.forEach((boton) => {
+      boton.classList.toggle("oculto", !seccionesBibliotecaria.includes(boton.dataset.seccion));
+    });
+
+    renderizarLibros(inputBuscador.value);
+    cambiarSeccion("seccion-inicio");
+    return;
+  }
+
+  if (barraNavegacion) {
+    barraNavegacion.classList.add("oculto");
+  }
+
+  renderizarConsultaUsuarios(inputBuscadorUsuarios.value);
+  cambiarSeccion("seccion-consulta");
+  const nombreMostrado = usuarioLogueado.nombre
+    ? `${usuarioLogueado.nombre} ${usuarioLogueado.apellido || ""}`.trim()
+    : usuarioLogueado.email;
+  mostrarMensaje(
+    mensajeConsulta,
+    `Bienvenido/a ${usuarioLogueado.rol}: ${nombreMostrado}. Puedes consultar el catalogo.`
+  );
+}
+
+function renderizarLibros(filtro = "") {
+  const termino = filtro.trim().toLowerCase();
+
+  const librosFiltrados = libros.filter((libro) => {
+    const textoCompleto = `${libro.codigo} ${libro.titulo} ${libro.autor} ${libro.editorial} ${libro.anio} ${libro.genero}`.toLowerCase();
+    return textoCompleto.includes(termino);
+  });
+
+  cuerpoTablaLibros.innerHTML = "";
+
+  if (librosFiltrados.length === 0) {
+    cuerpoTablaLibros.innerHTML = `
       <tr>
-        <td colspan="7">No se encontraron libros con esa busqueda.</td>
+        <td colspan="9">No se encontraron libros con esa busqueda.</td>
       </tr>
     `;
     return;
   }
 
-  filteredBooks.forEach((book) => {
-    const row = document.createElement("tr");
-    const lowStockClass = book.available <= 1 ? "status-low" : "";
-
-    row.innerHTML = `
-      <td>${book.code}</td>
-      <td>${book.title}</td>
-      <td>${book.author}</td>
-      <td>${book.genre}</td>
-      <td>${book.stock}</td>
-      <td class="${lowStockClass}">${book.available}</td>
-      <td>
-        <button class="button button--danger delete-book-button" type="button" data-code="${book.code}">
+  librosFiltrados.forEach((libro) => {
+    const fila = document.createElement("tr");
+    const claseStockBajo = libro.disponibles <= 1 ? "estado-bajo" : "";
+    const puedeEliminar = usuarioLogueado && usuarioLogueado.rol === "bibliotecaria";
+    const celdaAcciones = puedeEliminar
+      ? `
+        <button class="boton boton--peligro btn-eliminar-libro" type="button" data-codigo="${libro.codigo}">
           Eliminar
         </button>
-      </td>
+      `
+      : "Solo lectura";
+
+    fila.innerHTML = `
+      <td>${libro.codigo}</td>
+      <td>${libro.titulo}</td>
+      <td>${libro.autor}</td>
+      <td>${libro.editorial}</td>
+      <td>${libro.anio}</td>
+      <td>${libro.genero}</td>
+      <td>${libro.stock}</td>
+      <td class="${claseStockBajo}">${libro.disponibles}</td>
+      <td>${celdaAcciones}</td>
     `;
 
-    booksTableBody.appendChild(row);
+    cuerpoTablaLibros.appendChild(fila);
   });
 }
 
-function renderSummary() {
-  const totalTitulos = books.length;
-  const totalEjemplares = books.reduce((sum, book) => sum + book.stock, 0);
-  const totalDisponibles = books.reduce((sum, book) => sum + book.available, 0);
+function renderizarConsultaUsuarios(filtro = "") {
+  const termino = filtro.trim().toLowerCase();
+
+  const librosFiltrados = libros.filter((libro) => {
+    const textoCompleto = `${libro.codigo} ${libro.titulo} ${libro.autor} ${libro.editorial} ${libro.anio} ${libro.genero}`.toLowerCase();
+    return textoCompleto.includes(termino);
+  });
+
+  cuerpoTablaConsulta.innerHTML = "";
+
+  if (librosFiltrados.length === 0) {
+    cuerpoTablaConsulta.innerHTML = `
+      <tr>
+        <td colspan="6">No se encontraron libros con esa busqueda.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  librosFiltrados.forEach((libro) => {
+    const fila = document.createElement("tr");
+    const estadoDisponibilidad = libro.disponibles > 0
+      ? `${libro.disponibles} disponibles`
+      : "Sin ejemplares disponibles";
+    const claseDisponibilidad = libro.disponibles > 0 ? "etiqueta-disponible" : "etiqueta-no-disponible";
+
+    fila.innerHTML = `
+      <td>
+        <strong>${libro.titulo}</strong>
+        <span class="codigo-consulta">${libro.codigo}</span>
+      </td>
+      <td>${libro.autor}</td>
+      <td>${libro.editorial}</td>
+      <td>${libro.anio}</td>
+      <td>${libro.genero}</td>
+      <td><span class="${claseDisponibilidad}">${estadoDisponibilidad}</span></td>
+    `;
+
+    cuerpoTablaConsulta.appendChild(fila);
+  });
+}
+
+function renderizarResumen() {
+  const totalTitulos = libros.length;
+  const totalEjemplares = libros.reduce((suma, libro) => suma + libro.stock, 0);
+  const totalDisponibles = libros.reduce((suma, libro) => suma + libro.disponibles, 0);
   const totalPrestados = totalEjemplares - totalDisponibles;
 
   document.getElementById("totalTitulos").textContent = totalTitulos;
@@ -111,174 +285,282 @@ function renderSummary() {
   document.getElementById("totalPrestados").textContent = totalPrestados;
 }
 
-function renderLoanOptions() {
-  loanBook.innerHTML = "";
+function renderizarOpcionesPrestamo() {
+  selectLibroPrestamo.innerHTML = "";
 
-  books.forEach((book) => {
-    const option = document.createElement("option");
-    option.value = book.code;
-    option.textContent = `${book.title} (${book.available}/${book.stock} disponibles)`;
-    loanBook.appendChild(option);
+  libros.forEach((libro) => {
+    const opcion = document.createElement("option");
+    opcion.value = libro.codigo;
+    opcion.textContent = `${libro.titulo} (${libro.disponibles}/${libro.stock} disponibles)`;
+    selectLibroPrestamo.appendChild(opcion);
   });
 }
 
-function renderMovements() {
-  movementsTableBody.innerHTML = "";
+function renderizarMovimientos() {
+  cuerpoTablaMovimientos.innerHTML = "";
 
-  movements
+  movimientos
     .slice()
     .reverse()
-    .forEach((movement) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${movement.date}</td>
-        <td>${movement.book}</td>
-        <td>${movement.person}</td>
-        <td>${movement.action}</td>
+    .forEach((movimiento) => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${movimiento.fecha}</td>
+        <td>${movimiento.libro}</td>
+        <td>${movimiento.persona}</td>
+        <td>${movimiento.accion}</td>
       `;
-      movementsTableBody.appendChild(row);
+      cuerpoTablaMovimientos.appendChild(fila);
     });
 }
 
-function showMessage(element, text) {
-  element.textContent = text;
-}
-
-searchInput.addEventListener("input", (event) => {
-  showMessage(catalogMessage, "");
-  renderBooks(event.target.value);
+botonesSeccion.forEach((boton) => {
+  boton.addEventListener("click", () => {
+    cambiarSeccion(boton.dataset.seccion);
+  });
 });
 
-booksTableBody.addEventListener("click", (event) => {
-  const target = event.target;
+formularioLogin.addEventListener("submit", (evento) => {
+  evento.preventDefault();
 
-  if (!target.classList.contains("delete-book-button")) {
+  const email = document.getElementById("inputUsuario").value.trim().toLowerCase();
+  const password = document.getElementById("inputPasswordLogin").value;
+  const usuario = usuarios.find((item) => item.email === email);
+
+  if (!email || !password) {
+    mostrarMensaje(mensajeLogin, "Ingresa tu email y contrasena.");
     return;
   }
 
-  const selectedCode = target.dataset.code;
-  const bookIndex = books.findIndex((book) => book.code === selectedCode);
-
-  if (bookIndex === -1) {
-    showMessage(catalogMessage, "No se pudo encontrar el libro.");
+  if (!usuario) {
+    mostrarMensaje(mensajeLogin, "No encontramos una cuenta con ese mail. Registrate para crear una.");
     return;
   }
 
-  const book = books[bookIndex];
+  if (usuario.password !== password) {
+    mostrarMensaje(mensajeLogin, "La contrasena no coincide.");
+    return;
+  }
 
-  if (book.available !== book.stock) {
-    showMessage(
-      catalogMessage,
+  usuarioLogueado = usuario;
+  mostrarMensaje(mensajeLogin, "");
+  seccionLogin.classList.add("oculto");
+  aplicarPermisosPorRol();
+});
+
+formularioRegistro.addEventListener("submit", (evento) => {
+  evento.preventDefault();
+
+  const dni = document.getElementById("inputRegistroDni").value.trim();
+  const nombre = normalizarTexto(document.getElementById("inputRegistroNombre").value);
+  const apellido = normalizarTexto(document.getElementById("inputRegistroApellido").value);
+  const email = document.getElementById("inputRegistroMail").value.trim().toLowerCase();
+  const password = document.getElementById("inputRegistroPassword").value;
+  const telefono = normalizarTexto(document.getElementById("inputRegistroTelefono").value);
+  const codigoCurso = document.getElementById("inputRegistroCodigoCurso").value.trim().toUpperCase();
+
+  if (!/^\d{7,8}$/.test(dni)) {
+    mostrarMensaje(mensajeRegistro, "Ingresa un DNI valido, solo numeros.");
+    return;
+  }
+
+  if (!nombre || !apellido || !email || password.length < 6 || !telefono || !codigoCurso) {
+    mostrarMensaje(mensajeRegistro, "Completa todos los campos con datos validos.");
+    return;
+  }
+
+  if (!codigoCursoValido(codigoCurso)) {
+    mostrarMensaje(mensajeRegistro, "Ingresa un codigo de curso valido.");
+    return;
+  }
+
+  const emailExiste = usuarios.some((usuario) => usuario.email === email);
+  const dniExiste = usuarios.some((usuario) => usuario.dni === dni);
+
+  if (emailExiste) {
+    mostrarMensaje(mensajeRegistro, "Ese mail ya esta registrado. Inicia sesion con esa cuenta.");
+    return;
+  }
+
+  if (dniExiste) {
+    mostrarMensaje(mensajeRegistro, "Ese DNI ya esta registrado.");
+    return;
+  }
+
+  usuarioLogueado = {
+    dni,
+    nombre,
+    apellido,
+    email,
+    password,
+    telefono,
+    curso: codigoCurso,
+    rol: "estudiante"
+  };
+
+  usuarios.push(usuarioLogueado);
+  formularioRegistro.reset();
+  mostrarMensaje(mensajeRegistro, "");
+  mostrarMensaje(mensajeLogin, "");
+  seccionLogin.classList.add("oculto");
+  aplicarPermisosPorRol();
+});
+
+inputBuscador.addEventListener("input", (evento) => {
+  mostrarMensaje(mensajeCatalogo, "");
+  renderizarLibros(evento.target.value);
+});
+
+inputBuscadorUsuarios.addEventListener("input", (evento) => {
+  mostrarMensaje(mensajeConsulta, "");
+  renderizarConsultaUsuarios(evento.target.value);
+});
+
+cuerpoTablaLibros.addEventListener("click", (evento) => {
+  const objetivo = evento.target;
+
+  if (!objetivo.classList.contains("btn-eliminar-libro")) {
+    return;
+  }
+
+  if (!usuarioLogueado || usuarioLogueado.rol !== "bibliotecaria") {
+    mostrarMensaje(mensajeCatalogo, "No tienes permiso para eliminar libros.");
+    return;
+  }
+
+  const codigoSeleccionado = objetivo.dataset.codigo;
+  const indiceLibro = libros.findIndex((libro) => libro.codigo === codigoSeleccionado);
+
+  if (indiceLibro === -1) {
+    mostrarMensaje(mensajeCatalogo, "No se pudo encontrar el libro.");
+    return;
+  }
+
+  const libro = libros[indiceLibro];
+
+  if (libro.disponibles !== libro.stock) {
+    mostrarMensaje(
+      mensajeCatalogo,
       "No se puede eliminar un libro que tiene ejemplares prestados."
     );
     return;
   }
 
-  const confirmed = window.confirm(`Quieres eliminar "${book.title}" del catalogo?`);
+  const confirmado = window.confirm(`Quieres eliminar "${libro.titulo}" del catalogo?`);
 
-  if (!confirmed) {
+  if (!confirmado) {
     return;
   }
 
-  books.splice(bookIndex, 1);
-  showMessage(catalogMessage, "Libro eliminado correctamente del catalogo.");
+  libros.splice(indiceLibro, 1);
+  mostrarMensaje(mensajeCatalogo, "Libro eliminado correctamente del catalogo.");
 
-  renderBooks(searchInput.value);
-  renderSummary();
-  renderLoanOptions();
+  renderizarLibros(inputBuscador.value);
+  renderizarConsultaUsuarios(inputBuscadorUsuarios.value);
+  renderizarResumen();
+  renderizarOpcionesPrestamo();
 });
 
-addBookForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+formularioAgregarLibro.addEventListener("submit", (evento) => {
+  evento.preventDefault();
 
-  const code = document.getElementById("bookCode").value.trim();
-  const title = document.getElementById("bookTitle").value.trim();
-  const author = document.getElementById("bookAuthor").value.trim();
-  const genre = document.getElementById("bookGenre").value.trim();
-  const stock = Number(document.getElementById("bookStock").value);
+  const codigo = document.getElementById("inputCodigo").value.trim();
+  const titulo = document.getElementById("inputTitulo").value.trim();
+  const autor = document.getElementById("inputAutor").value.trim();
+  const editorial = document.getElementById("inputEditorial").value.trim();
+  const anio = Number(document.getElementById("inputAnio").value);
+  const genero = document.getElementById("inputGenero").value.trim();
+  const stock = Number(document.getElementById("inputStock").value);
+  const anioActual = new Date().getFullYear();
 
-  if (!code || !title || !author || !genre || stock < 1) {
-    showMessage(bookMessage, "Completa todos los campos con datos validos.");
+  if (!codigo || !titulo || !autor || !editorial || !genero || stock < 1 || anio < 1000 || anio > anioActual + 1) {
+    mostrarMensaje(mensajeLibro, "Completa todos los campos con datos validos.");
     return;
   }
 
-  const bookExists = books.some((book) => book.code.toLowerCase() === code.toLowerCase());
+  const libroExiste = libros.some((libro) => libro.codigo.toLowerCase() === codigo.toLowerCase());
 
-  if (bookExists) {
-    showMessage(bookMessage, "Ese codigo ya existe. Usa uno diferente.");
+  if (libroExiste) {
+    mostrarMensaje(mensajeLibro, "Ese codigo ya existe. Usa uno diferente.");
     return;
   }
 
-  books.push({
-    code,
-    title,
-    author,
-    genre,
+  libros.push({
+    codigo,
+    titulo,
+    autor,
+    editorial,
+    anio,
+    genero,
     stock,
-    available: stock
+    disponibles: stock
   });
 
-  addBookForm.reset();
-  document.getElementById("bookStock").value = 1;
-  showMessage(bookMessage, "Libro agregado correctamente al catalogo.");
-  showMessage(catalogMessage, "");
+  formularioAgregarLibro.reset();
+  document.getElementById("inputStock").value = 1;
+  mostrarMensaje(mensajeLibro, "Libro agregado correctamente al catalogo.");
+  mostrarMensaje(mensajeCatalogo, "");
 
-  renderBooks(searchInput.value);
-  renderSummary();
-  renderLoanOptions();
+  renderizarLibros(inputBuscador.value);
+  renderizarConsultaUsuarios(inputBuscadorUsuarios.value);
+  renderizarResumen();
+  renderizarOpcionesPrestamo();
 });
 
-loanForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+formularioPrestamos.addEventListener("submit", (evento) => {
+  evento.preventDefault();
 
-  const selectedCode = loanBook.value;
-  const person = document.getElementById("loanPerson").value.trim();
-  const action = document.getElementById("loanAction").value;
-  const book = books.find((item) => item.code === selectedCode);
+  const codigoSeleccionado = selectLibroPrestamo.value;
+  const persona = document.getElementById("inputPersonaPrestamo").value.trim();
+  const accion = document.getElementById("selectAccionPrestamo").value;
+  const libro = libros.find((item) => item.codigo === codigoSeleccionado);
 
-  if (!person) {
-    showMessage(loanMessage, "Ingresa el nombre de la persona.");
+  if (!persona) {
+    mostrarMensaje(mensajePrestamo, "Ingresa el nombre de la persona.");
     return;
   }
 
-  if (!book) {
-    showMessage(loanMessage, "Selecciona un libro valido.");
+  if (!libro) {
+    mostrarMensaje(mensajePrestamo, "Selecciona un libro valido.");
     return;
   }
 
-  if (action === "prestamo") {
-    if (book.available === 0) {
-      showMessage(loanMessage, "No hay ejemplares disponibles para prestar.");
+  if (accion === "prestamo") {
+    if (libro.disponibles === 0) {
+      mostrarMensaje(mensajePrestamo, "No hay ejemplares disponibles para prestar.");
       return;
     }
 
-    book.available -= 1;
+    libro.disponibles -= 1;
   } else {
-    if (book.available === book.stock) {
-      showMessage(loanMessage, "Todos los ejemplares ya figuran como disponibles.");
+    if (libro.disponibles === libro.stock) {
+      mostrarMensaje(mensajePrestamo, "Todos los ejemplares ya figuran como disponibles.");
       return;
     }
 
-    book.available += 1;
+    libro.disponibles += 1;
   }
 
-  movements.push({
-    date: new Date().toLocaleDateString("es-AR"),
-    book: book.title,
-    person,
-    action: action === "prestamo" ? "Prestamo" : "Devolucion"
+  movimientos.push({
+    fecha: new Date().toLocaleDateString("es-AR"),
+    libro: libro.titulo,
+    persona,
+    accion: accion === "prestamo" ? "Prestamo" : "Devolucion"
   });
 
-  loanForm.reset();
-  showMessage(loanMessage, "Movimiento registrado correctamente.");
+  formularioPrestamos.reset();
+  mostrarMensaje(mensajePrestamo, "Movimiento registrado correctamente.");
 
-  renderBooks(searchInput.value);
-  renderSummary();
-  renderLoanOptions();
-  renderMovements();
+  renderizarLibros(inputBuscador.value);
+  renderizarConsultaUsuarios(inputBuscadorUsuarios.value);
+  renderizarResumen();
+  renderizarOpcionesPrestamo();
+  renderizarMovimientos();
 });
 
-renderBooks();
-renderSummary();
-renderLoanOptions();
-renderMovements();
+renderizarLibros();
+renderizarConsultaUsuarios();
+renderizarResumen();
+renderizarOpcionesPrestamo();
+renderizarMovimientos();
+iniciarApp();
